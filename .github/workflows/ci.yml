@@ -29,6 +29,7 @@ jobs:
        run: docker build -t ghcr.io/marcelhassankassem-dev/portfolio:latest . 
      - name: Push Docker image 
        run: docker push ghcr.io/marcelhassankassem-dev/portfolio:latest
+
   deploy: 
     needs: test 
     runs-on: [self-hosted, portfolio-deploy] 
@@ -37,7 +38,25 @@ jobs:
         if: runner.os == 'Windows' 
         shell: powershell -NoProfile -ExecutionPolicy Bypass -File {0} 
         run: docker info 
+
       - name: Check Docker on macOS 
         if: runner.os == 'macOS' 
         shell: bash
         run: docker info  
+
+      - name: Log in to GitHub Container Registry 
+        uses: docker/login-action@v4 
+        with: 
+          registry: ghcr.io 
+          username: ${{ github.actor }} 
+          password: ${{ secrets.GITHUB_TOKEN }} 
+
+      - name: Pull image on Windows 
+        if: runner.os == 'Windows' 
+        shell: powershell -NoProfile -ExecutionPolicy Bypass -File {0} 
+        run: docker pull --platform linux/amd64 ghcr.io/marcelhassankassem-dev/portfolio:latest 
+
+      - name: Pull image on macOS 
+        if: runner.os == 'macOS' 
+        shell: bash 
+        run: docker pull --platform linux/amd64 ghcr.io/marcelhassankassem-dev/portfolio:latest 
